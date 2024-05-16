@@ -19,10 +19,11 @@ interface Props {
 function StatsCards({ from, to, userSettings }: Props) {
   const statsQuery = useQuery<GetBalanceStatsResponseType>({
     queryKey: ["overview", "stats", from, to],
-    queryFn: () =>
-      fetch(
-        `/api/stats/balance?from=${DateToUTCDate(from)}&to=${DateToUTCDate(to)}`
-      ).then((res) => res.json()),
+    queryFn: () => {
+      return fetch(
+        `/api/stats/balance?from=${from}&to=${to}`
+      ).then((res) => res.json())
+    }
   });
 
   const formatter = useMemo(() => {
