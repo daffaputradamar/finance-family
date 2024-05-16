@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GetFormatterForCurrency } from "@/lib/helpers";
 import { Period, Timeframe } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { UserSettings } from "@prisma/client";
+import { UserSetting } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import React, { useCallback, useMemo, useState } from "react";
 import CountUp from "react-countup";
@@ -21,7 +21,7 @@ import {
   YAxis,
 } from "recharts";
 
-function History({ userSettings }: { userSettings: UserSettings }) {
+function History({ userSettings }: { userSettings: UserSetting }) {
   const [timeframe, setTimeframe] = useState<Timeframe>("month");
   const [period, setPeriod] = useState<Period>({
     month: new Date().getMonth(),

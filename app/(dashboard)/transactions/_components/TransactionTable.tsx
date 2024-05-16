@@ -104,7 +104,7 @@ const columns: ColumnDef<TransactionHistoryRow>[] = [
         className={cn(
           "capitalize rounded-lg text-center p-2",
           row.original.type === "income" &&
-            "bg-emerald-400/10 text-emerald-500",
+          "bg-emerald-400/10 text-emerald-500",
           row.original.type === "expense" && "bg-red-400/10 text-red-500"
         )}
       >
@@ -144,9 +144,7 @@ function TransactionTable({ from, to }: Props) {
     queryKey: ["transactions", "history", from, to],
     queryFn: () =>
       fetch(
-        `/api/transactions-history?from=${DateToUTCDate(
-          from
-        )}&to=${DateToUTCDate(to)}`
+        `/api/transactions-history?from=${from}&to=${to}`
       ).then((res) => res.json()),
   });
 
@@ -240,9 +238,9 @@ function TransactionTable({ from, to }: Props) {
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                       </TableHead>
                     );
                   })}

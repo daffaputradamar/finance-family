@@ -98,7 +98,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
 
       mutate({
         ...values,
-        date: DateToUTCDate(values.date),
+        date: values.date,
       });
     },
     [mutate]
@@ -117,7 +117,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
                 type === "income" ? "text-emerald-500" : "text-red-500"
               )}
             >
-              {type}
+              {type.charAt(0).toUpperCase() + type.slice(1)}
             </span>
             transaction
           </DialogTitle>

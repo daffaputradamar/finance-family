@@ -13,7 +13,7 @@ async function page() {
     redirect("/sign-in");
   }
 
-  const userSettings = await prisma.userSettings.findUnique({
+  const userSettings = await prisma.userSetting.findUnique({
     where: {
       userId: user.id,
     },
@@ -36,7 +36,7 @@ async function page() {
                   variant={"outline"}
                   className="border-emerald-500 bg-emerald-950 text-white hover:bg-emerald-700 hover:text-white"
                 >
-                  New income 🤑
+                  New Income 🤑
                 </Button>
               }
               type="income"
@@ -48,7 +48,7 @@ async function page() {
                   variant={"outline"}
                   className="border-rose-500 bg-rose-950 text-white hover:bg-rose-700 hover:text-white"
                 >
-                  New expense 😤
+                  New Expense 😤
                 </Button>
               }
               type="expense"

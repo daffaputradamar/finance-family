@@ -4,7 +4,7 @@ import { GetBalanceStatsResponseType } from "@/app/api/stats/balance/route";
 import SkeletonWrapper from "@/components/SkeletonWrapper";
 import { Card } from "@/components/ui/card";
 import { DateToUTCDate, GetFormatterForCurrency } from "@/lib/helpers";
-import { UserSettings } from "@prisma/client";
+import { UserSetting } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import React, { ReactNode, useCallback, useMemo } from "react";
@@ -13,7 +13,7 @@ import CountUp from "react-countup";
 interface Props {
   from: Date;
   to: Date;
-  userSettings: UserSettings;
+  userSettings: UserSetting;
 }
 
 function StatsCards({ from, to, userSettings }: Props) {
@@ -21,7 +21,7 @@ function StatsCards({ from, to, userSettings }: Props) {
     queryKey: ["overview", "stats", from, to],
     queryFn: () =>
       fetch(
-        `/api/stats/balance?from=${DateToUTCDate(from)}&to=${DateToUTCDate(to)}`
+        `/api/stats/balance?from=${from}&to=${to}`
       ).then((res) => res.json()),
   });
 

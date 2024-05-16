@@ -7,12 +7,12 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DateToUTCDate, GetFormatterForCurrency } from "@/lib/helpers";
 import { TransactionType } from "@/lib/types";
-import { UserSettings } from "@prisma/client";
+import { UserSetting } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo } from "react";
 
 interface Props {
-  userSettings: UserSettings;
+  userSettings: UserSetting;
   from: Date;
   to: Date;
 }
@@ -22,9 +22,7 @@ function CategoriesStats({ userSettings, from, to }: Props) {
     queryKey: ["overview", "stats", "categories", from, to],
     queryFn: () =>
       fetch(
-        `/api/stats/categories?from=${DateToUTCDate(from)}&to=${DateToUTCDate(
-          to
-        )}`
+        `/api/stats/categories?from=${from}&to=${to}`
       ).then((res) => res.json()),
   });
 

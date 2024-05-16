@@ -39,7 +39,7 @@ export type GetTransactionHistoryResponseType = Awaited<
 >;
 
 async function getTransactionsHistory(userId: string, from: Date, to: Date) {
-  const userSettings = await prisma.userSettings.findUnique({
+  const userSettings = await prisma.userSetting.findUnique({
     where: {
       userId,
     },

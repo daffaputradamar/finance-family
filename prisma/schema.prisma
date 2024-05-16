@@ -9,13 +9,16 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
-model UserSettings {
+model UserSetting {
   userId   String @id
   currency String
+
+  @@map("budgetingapp_usersettings")
 }
 
 model Category {
@@ -26,6 +29,7 @@ model Category {
   type      String   @default("income")
 
   @@unique([name, userId, type])
+  @@map("budgetingapp_categories")
 }
 
 model Transaction {
@@ -41,6 +45,8 @@ model Transaction {
 
   category     String
   categoryIcon String
+
+  @@map("budgetingapp_transactions")
 }
 
 model MonthHistory {
@@ -52,6 +58,7 @@ model MonthHistory {
   expense Float
 
   @@id([day, month, year, userId])
+  @@map("budgetingapp_month_history")
 }
 
 model YearHistory {
@@ -62,4 +69,5 @@ model YearHistory {
   expense Float
 
   @@id([month, year, userId])
+  @@map("budgetingapp_year_history")
 }

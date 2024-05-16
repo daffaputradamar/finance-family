@@ -19,7 +19,7 @@ export async function UpdateUserCurrency(currency: string) {
     redirect("/sign-in");
   }
 
-  const userSettings = await prisma.userSettings.update({
+  const userSettings = await prisma.userSetting.update({
     where: {
       userId: user.id,
     },

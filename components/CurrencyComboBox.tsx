@@ -21,7 +21,7 @@ import {
 import { Currencies, Currency } from "@/lib/currencies";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import SkeletonWrapper from "@/components/SkeletonWrapper";
-import { UserSettings } from "@prisma/client";
+import { UserSetting } from "@prisma/client";
 import { UpdateUserCurrency } from "@/app/wizard/_actions/userSettings";
 import { toast } from "sonner";
 
@@ -32,7 +32,7 @@ export function CurrencyComboBox() {
     null
   );
 
-  const userSettings = useQuery<UserSettings>({
+  const userSettings = useQuery<UserSetting>({
     queryKey: ["userSettings"],
     queryFn: () => fetch("/api/user-settings").then((res) => res.json()),
   });
@@ -47,7 +47,7 @@ export function CurrencyComboBox() {
 
   const mutation = useMutation({
     mutationFn: UpdateUserCurrency,
-    onSuccess: (data: UserSettings) => {
+    onSuccess: (data: UserSetting) => {
       toast.success(`Currency updated successuflly 🎉`, {
         id: "update-currency",
       });
@@ -143,7 +143,7 @@ function OptionList({
               onSelect={(value) => {
                 setSelectedOption(
                   Currencies.find((priority) => priority.value === value) ||
-                    null
+                  null
                 );
                 setOpen(false);
               }}
