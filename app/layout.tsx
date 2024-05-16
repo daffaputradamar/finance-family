@@ -10,6 +10,18 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Finance Family",
   description: "Track Income and Expense",
+  manifest: "/manifest.json",
+  keywords: ["budget", "budget tracker", "finance", "finance manager"],
+  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#fff" }],
+  authors: [
+    { name: "Daffa Akbar" }
+  ],
+  viewport:
+    "minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover",
+  icons: [
+    { rel: "apple-touch-icon", url: "icons/ios/128.png" },
+    { rel: "icon", url: "icons/windows11/LargeTile.scale-200.png" },
+  ],
 };
 
 export default function RootLayout({
