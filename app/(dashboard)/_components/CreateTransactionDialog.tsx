@@ -155,7 +155,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
               )}
             />
 
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex md:flex-row flex-col md:items-center items-start justify-between gap-x-2 gap-y-4">
               <FormField
                 control={form.control}
                 name="category"
@@ -187,7 +187,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "w-[200px] pl-3 text-left font-normal",
+                              "w-100 pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
                           >
