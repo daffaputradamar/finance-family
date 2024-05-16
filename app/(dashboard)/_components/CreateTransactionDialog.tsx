@@ -95,6 +95,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
   const onSubmit = useCallback(
     (values: CreateTransactionSchemaType) => {
       toast.loading("Creating transaction...", { id: "create-transaction" });
+      console.log(values.date);
 
       mutate({
         ...values,
@@ -212,7 +213,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormDescription>Select a date for this</FormDescription>
+                    <FormDescription>Select a date for this transaction</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -220,7 +221,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
             </div>
           </form>
         </Form>
-        <DialogFooter>
+        <DialogFooter className="gap-y-4">
           <DialogClose asChild>
             <Button
               type="button"
