@@ -95,11 +95,10 @@ function CreateTransactionDialog({ trigger, type }: Props) {
   const onSubmit = useCallback(
     (values: CreateTransactionSchemaType) => {
       toast.loading("Creating transaction...", { id: "create-transaction" });
-      console.log(values.date);
 
       mutate({
         ...values,
-        date: values.date,
+        date: DateToUTCDate(values.date),
       });
     },
     [mutate]

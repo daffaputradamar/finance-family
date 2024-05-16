@@ -144,7 +144,9 @@ function TransactionTable({ from, to }: Props) {
     queryKey: ["transactions", "history", from, to],
     queryFn: () =>
       fetch(
-        `/api/transactions-history?from=${from}&to=${to}`
+        `/api/transactions-history?from=${DateToUTCDate(
+          from
+        )}&to=${DateToUTCDate(to)}`
       ).then((res) => res.json()),
   });
 
