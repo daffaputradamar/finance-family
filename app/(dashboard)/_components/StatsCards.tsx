@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { DateToUTCDate, GetFormatterForCurrency } from "@/lib/helpers";
 import { UserSetting } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
-import { TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { TrendingDown, TrendingUp, Wallet, HandCoins } from "lucide-react";
 import React, { ReactNode, useCallback, useMemo } from "react";
 import CountUp from "react-countup";
 
@@ -32,6 +32,7 @@ function StatsCards({ from, to, userSettings }: Props) {
 
   const income = statsQuery.data?.income || 0;
   const expense = statsQuery.data?.expense || 0;
+  const debt = statsQuery.data?.debt || 0;
 
   const balance = income - expense;
 
@@ -66,6 +67,17 @@ function StatsCards({ from, to, userSettings }: Props) {
           title="Balance"
           icon={
             <Wallet className="h-12 w-12 items-center rounded-lg p-2 text-violet-500 bg-violet-400/10" />
+          }
+        />
+      </SkeletonWrapper>
+
+      <SkeletonWrapper isLoading={statsQuery.isFetching}>
+        <StatCard
+          formatter={formatter}
+          value={debt}
+          title="Debt Amount"
+          icon={
+            <HandCoins className="h-12 w-12 items-center rounded-lg p-2 text-amber-500 bg-violet-400/10" />
           }
         />
       </SkeletonWrapper>
