@@ -44,6 +44,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateTransaction } from "@/app/(dashboard)/_actions/transactions";
 import { toast } from "sonner";
 import { DateToUTCDate } from "@/lib/helpers";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Props {
   trigger: ReactNode;
@@ -56,6 +57,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
     defaultValues: {
       type,
       date: new Date(),
+      isLoaned: true
     },
   });
   const [open, setOpen] = useState(false);
@@ -81,6 +83,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
         amount: 0,
         date: new Date(),
         category: undefined,
+        isLoaned: false
       });
 
       // After creating a transaction, we need to invalidate the overview query which will refetch data in the homepage
@@ -95,7 +98,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
   const onSubmit = useCallback(
     (values: CreateTransactionSchemaType) => {
       toast.loading("Creating transaction...", { id: "create-transaction" });
-
+      
       mutate({
         ...values,
         date: DateToUTCDate(values.date),
@@ -123,7 +126,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+          <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="description"
@@ -154,7 +157,20 @@ function CreateTransactionDialog({ trigger, type }: Props) {
                 </FormItem>
               )}
             />
-
+            {
+              type == "expense" && <FormField
+                control={form.control}
+                name="isLoaned"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-2 space-y-0">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel>Status Paid Off</FormLabel>
+                  </FormItem>
+                )}
+              />
+            }
             <div className="flex md:flex-row flex-col md:items-center items-start justify-between gap-x-2 gap-y-4">
               <FormField
                 control={form.control}
@@ -218,6 +234,9 @@ function CreateTransactionDialog({ trigger, type }: Props) {
                 )}
               />
             </div>
+
+
+
           </form>
         </Form>
         <DialogFooter className="gap-y-4">

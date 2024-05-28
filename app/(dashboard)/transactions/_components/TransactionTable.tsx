@@ -1,7 +1,7 @@
 "use client";
 
 import { DateToUTCDate } from "@/lib/helpers";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useMemo, useState } from "react";
 import {
   ColumnDef,
@@ -42,6 +42,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import DeleteTransactionDialog from "@/app/(dashboard)/transactions/_components/DeleteTransactionDialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import { UpdatePaidOffTransaction } from "../_actions/updatePaidOffTransaction";
 
 interface Props {
   from: Date;
@@ -51,84 +54,6 @@ interface Props {
 const emptyData: any[] = [];
 
 type TransactionHistoryRow = GetTransactionHistoryResponseType[0];
-
-const columns: ColumnDef<TransactionHistoryRow>[] = [
-  {
-    accessorKey: "category",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Category" />
-    ),
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-    cell: ({ row }) => (
-      <div className="flex gap-2 capitalize">
-        {row.original.categoryIcon}
-        <div className="capitalize">{row.original.category}</div>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "description",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Description" />
-    ),
-    cell: ({ row }) => (
-      <div className="capitalize">{row.original.description}</div>
-    ),
-  },
-  {
-    accessorKey: "date",
-    header: "Date",
-    cell: ({ row }) => {
-      const date = new Date(row.original.date);
-      const formattedDate = date.toLocaleDateString("default", {
-        timeZone: "UTC",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-      return <div className="text-muted-foreground">{formattedDate}</div>;
-    },
-  },
-  {
-    accessorKey: "type",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Type" />
-    ),
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-    cell: ({ row }) => (
-      <div
-        className={cn(
-          "capitalize rounded-lg text-center p-2",
-          row.original.type === "income" &&
-          "bg-emerald-400/10 text-emerald-500",
-          row.original.type === "expense" && "bg-red-400/10 text-red-500"
-        )}
-      >
-        {row.original.type}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "amount",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Amount" />
-    ),
-    cell: ({ row }) => (
-      <p className="text-md rounded-lg bg-gray-400/5 p-2 text-center font-medium">
-        {row.original.formattedAmount}
-      </p>
-    ),
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => <RowActions transaction={row.original} />,
-  },
-];
 
 const csvConfig = mkConfig({
   fieldSeparator: ",",
@@ -140,6 +65,8 @@ function TransactionTable({ from, to }: Props) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
+  const queryClient = useQueryClient();
+
   const history = useQuery<GetTransactionHistoryResponseType>({
     queryKey: ["transactions", "history", from, to],
     queryFn: () =>
@@ -148,10 +75,127 @@ function TransactionTable({ from, to }: Props) {
       ).then((res) => res.json()),
   });
 
+  const updatePaidOff = useMutation({
+    mutationFn: UpdatePaidOffTransaction,
+    onSuccess: async () => {
+      toast.success("Status Paid Off Successfully Updated", {
+        id: "updatePaidOff",
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ["transactions"],
+      });
+    },
+    onError: () => {
+      toast.error("Something went wrong", {
+        id: "updatePaidOff",
+      });
+    },
+  });
+
   const handleExportCSV = (data: any[]) => {
     const csv = generateCsv(csvConfig)(data);
     download(csvConfig)(csv);
   };
+
+  const columns: ColumnDef<TransactionHistoryRow>[] = [
+    {
+      accessorKey: "category",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Category" />
+      ),
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+      cell: ({ row }) => (
+        <div className="flex gap-2 capitalize">
+          {row.original.categoryIcon}
+          <div className="capitalize">{row.original.category}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "description",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Description" />
+      ),
+      cell: ({ row }) => (
+        <div className="capitalize">{row.original.description}</div>
+      ),
+    },
+    {
+      accessorKey: "date",
+      header: "Date",
+      cell: ({ row }) => {
+        const date = new Date(row.original.date);
+        const formattedDate = date.toLocaleDateString("default", {
+          timeZone: "UTC",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+        return <div className="text-muted-foreground">{formattedDate}</div>;
+      },
+    },
+    {
+      accessorKey: "type",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Type" />
+      ),
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+      cell: ({ row }) => (
+        <div
+          className={cn(
+            "capitalize rounded-lg text-center p-2",
+            row.original.type === "income" &&
+            "bg-emerald-400/10 text-emerald-500",
+            row.original.type === "expense" && "bg-red-400/10 text-red-500"
+          )}
+        >
+          {row.original.type}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "amount",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Amount" />
+      ),
+      cell: ({ row }) => (
+        <p className="text-md rounded-lg bg-gray-400/5 p-2 text-center font-medium">
+          {row.original.formattedAmount}
+        </p>
+      ),
+    },
+    {
+      accessorKey: "isLoaned",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Paid Off" />
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={!row.original.isLoaned}
+            onCheckedChange={() => {
+              toast.loading("Updating transaction...", {
+                id: "updatePaidOff",
+              });
+  
+              updatePaidOff.mutate(row.original.id);
+            }}
+          />
+        </div>
+        
+      ),
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => <RowActions transaction={row.original} />,
+    },
+  ];
 
   const table = useReactTable({
     data: history.data || emptyData,

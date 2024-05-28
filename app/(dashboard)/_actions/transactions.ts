@@ -19,7 +19,9 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
     redirect("/sign-in");
   }
 
-  const { amount, category, date, description, type } = parsedBody.data;
+  const { amount, category, date, description, type, isLoaned } = parsedBody.data;
+  console.log("body", parsedBody);
+  
   const categoryRow = await prisma.category.findFirst({
     where: {
       userId: user.id,
@@ -44,6 +46,7 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
         type,
         category: categoryRow.name,
         categoryIcon: categoryRow.icon,
+        isLoaned: !isLoaned
       },
     }),
 

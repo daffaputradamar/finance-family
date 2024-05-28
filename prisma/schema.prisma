@@ -42,6 +42,7 @@ model Transaction {
   date        DateTime
   userId      String
   type        String   @default("income")
+  isLoaned    Boolean @default(false)
 
   category     String
   categoryIcon String
