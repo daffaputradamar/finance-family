@@ -83,7 +83,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
         amount: 0,
         date: new Date(),
         category: undefined,
-        isLoaned: false
+        isLoaned: true
       });
 
       // After creating a transaction, we need to invalidate the overview query which will refetch data in the homepage
