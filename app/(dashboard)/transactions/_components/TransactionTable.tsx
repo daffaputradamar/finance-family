@@ -170,14 +170,14 @@ function TransactionTable({ from, to }: Props) {
       ),
     },
     {
-      accessorKey: "isLoaned",
+      accessorKey: "isPaidOff",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Paid Off" />
       ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
-            checked={!row.original.isLoaned}
+            checked={!row.original.isPaidOff}
             onCheckedChange={() => {
               toast.loading("Updating transaction...", {
                 id: "updatePaidOff",

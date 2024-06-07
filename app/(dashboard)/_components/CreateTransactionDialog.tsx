@@ -57,7 +57,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
     defaultValues: {
       type,
       date: new Date(),
-      isLoaned: true
+      isPaidOff: true
     },
   });
   const [open, setOpen] = useState(false);
@@ -83,7 +83,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
         amount: 0,
         date: new Date(),
         category: undefined,
-        isLoaned: true
+        isPaidOff: true
       });
 
       // After creating a transaction, we need to invalidate the overview query which will refetch data in the homepage
@@ -160,7 +160,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
             {
               type == "expense" && <FormField
                 control={form.control}
-                name="isLoaned"
+                name="isPaidOff"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-2 space-y-0">
                     <FormControl>

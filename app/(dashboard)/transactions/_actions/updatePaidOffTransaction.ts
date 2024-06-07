@@ -29,7 +29,7 @@ export async function UpdatePaidOffTransaction(id: string) {
         userId: user.id,
       },
       data: {
-        isLoaned: !transaction.isLoaned
+        isPaidOff: !transaction.isPaidOff
       }
     }),
     

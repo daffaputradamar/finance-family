@@ -36,7 +36,7 @@ export type GetBalanceStatsResponseType = Awaited<
 
 async function getBalanceStats(userId: string, from: Date, to: Date) {
   const totals = await prisma.transaction.groupBy({
-    by: ["type", "isLoaned"],
+    by: ["type", "isPaidOff"],
     where: {
       userId,
       date: {
@@ -52,6 +52,6 @@ async function getBalanceStats(userId: string, from: Date, to: Date) {
   return {
     expense: totals.find((t) => t.type === "expense")?._sum.amount || 0,
     income: totals.find((t) => t.type === "income")?._sum.amount || 0,
-    debt: totals.find((t) => t.type === "expense" && t.isLoaned == true)?._sum.amount || 0,
+    debt: totals.find((t) => t.type === "expense" && t.isPaidOff == true)?._sum.amount || 0,
   };
 }

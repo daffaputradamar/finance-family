@@ -42,11 +42,10 @@ model Transaction {
   date        DateTime
   userId      String
   type        String   @default("income")
-  isLoaned    Boolean @default(false)
+  isPaidOff    Boolean @default(false)
 
   category     String
   categoryIcon String
-
   @@map("budgetingapp_transactions")
 }
 

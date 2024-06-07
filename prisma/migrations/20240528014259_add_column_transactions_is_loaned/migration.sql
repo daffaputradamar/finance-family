@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "budgetingapp_transactions" ADD COLUMN     "isLoaned" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "budgetingapp_transactions" ADD COLUMN     "isPaidOff" BOOLEAN NOT NULL DEFAULT false;
