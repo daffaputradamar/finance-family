@@ -49,6 +49,19 @@ model Transaction {
   @@map("budgetingapp_transactions")
 }
 
+model Period {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updateAt  DateTime @default(now())
+
+  name        String
+  start       DateTime
+  end         DateTime
+  isDefault   Boolean @default(false)
+  userId      String
+  @@map("budgetingapp_periods")
+}
+
 model MonthHistory {
   userId  String
   day     Int

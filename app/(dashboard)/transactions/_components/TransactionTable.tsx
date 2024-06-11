@@ -177,7 +177,7 @@ function TransactionTable({ from, to }: Props) {
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
-            checked={!row.original.isPaidOff}
+            checked={row.original.isPaidOff}
             onCheckedChange={() => {
               toast.loading("Updating transaction...", {
                 id: "updatePaidOff",

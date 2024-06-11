@@ -19,6 +19,8 @@ import { Category } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import { PlusSquare, TrashIcon, TrendingDown, TrendingUp } from "lucide-react";
 import React from "react";
+import PeriodPicker from "../_components/PeriodPicker";
+import { PeriodCard } from "./_components/PeriodCard";
 
 function page() {
   return (
@@ -47,6 +49,7 @@ function page() {
             <CurrencyComboBox />
           </CardContent>
         </Card>
+        <PeriodCard />
         <CategoryList type="income" />
         <CategoryList type="expense" />
       </div>
@@ -90,7 +93,7 @@ function CategoryList({ type }: { type: TransactionType }) {
               trigger={
                 <Button className="gap-2 text-sm">
                   <PlusSquare className="h-4 w-4" />
-                  Create category
+                  Create Category
                 </Button>
               }
             />

@@ -4,14 +4,44 @@ import TransactionTable from "@/app/(dashboard)/transactions/_components/Transac
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { MAX_DATE_RANGE_DAYS } from "@/lib/constants";
 import { differenceInDays, startOfMonth } from "date-fns";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import PeriodPicker from "../_components/PeriodPicker";
+import { useQuery } from "@tanstack/react-query";
+import SkeletonWrapper from "@/components/SkeletonWrapper";
+import { Period } from "@prisma/client";
 
 function TransactionsPage() {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: startOfMonth(new Date()),
     to: new Date(),
   });
+
+  const handlePeriodChange = useCallback(
+    (period: Period) => {
+      setDateRange({from: period.start, to: period.end})
+    }, [setDateRange]
+  )
+
+  const periodsQuery = useQuery({
+    queryKey: ["periods"],
+    queryFn: () =>
+      fetch(`/api/periods`).then((res) => res.json()),
+  });
+
+  useEffect(() => {
+    if(periodsQuery.isSuccess) {
+      let data: Period = periodsQuery.data?.find((x: Period) => x.isDefault)
+      
+      if(data) {
+        setDateRange({
+          from: data.start,
+          to: data.end
+        })
+      }
+    }
+  }, [periodsQuery.isSuccess])
+
   return (
     <>
       <div className="border-b bg-card">
@@ -19,25 +49,28 @@ function TransactionsPage() {
           <div>
             <p className="text-3xl font-bold">Transactions history</p>
           </div>
-          <DateRangePicker
-            initialDateFrom={dateRange.from}
-            initialDateTo={dateRange.to}
-            showCompare={false}
-            onUpdate={(values) => {
-              const { from, to } = values.range;
-              // We update the date range only if both dates are set
+          <div className="flex items-center gap-3">
+            <PeriodPicker isLoading={periodsQuery.isLoading} onChange={handlePeriodChange} periods={periodsQuery.data} />
+            {/* <DateRangePicker
+              initialDateFrom={dateRange.from}
+              initialDateTo={dateRange.to}
+              showCompare={false}
+              onUpdate={(values) => {
+                const { from, to } = values.range;
+                // We update the date range only if both dates are set
 
-              if (!from || !to) return;
-              if (differenceInDays(to, from) > MAX_DATE_RANGE_DAYS) {
-                toast.error(
-                  `The selected date range is too big. Max allowed range is ${MAX_DATE_RANGE_DAYS} days!`
-                );
-                return;
-              }
+                if (!from || !to) return;
+                if (differenceInDays(to, from) > MAX_DATE_RANGE_DAYS) {
+                  toast.error(
+                    `The selected date range is too big. Max allowed range is ${MAX_DATE_RANGE_DAYS} days!`
+                  );
+                  return;
+                }
 
-              setDateRange({ from, to });
-            }}
-          />
+                setDateRange({ from, to });
+              }} 
+            />*/}
+          </div>
         </div>
       </div>
       <div className="container">

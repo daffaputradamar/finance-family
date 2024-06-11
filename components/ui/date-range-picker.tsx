@@ -91,7 +91,7 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
   filePath: string;
 } = ({
   initialDateFrom = new Date(new Date().setHours(0, 0, 0, 0)),
-  initialDateTo,
+  initialDateTo = new Date(),
   initialCompareFrom,
   initialCompareTo,
   onUpdate,
@@ -331,6 +331,12 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
       openedRangeCompareRef.current = rangeCompare;
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    // onUpdate?.({range: {from: new Date(initialDateFrom), to: new Date(initialDateTo)}})
+    console.log("Ubah val", initialDateFrom, initialDateTo);
+    
+  }, [initialDateFrom, initialDateTo])
 
   return (
     <Popover
