@@ -49,9 +49,10 @@ async function getBalanceStats(userId: string, from: Date, to: Date) {
     },
   });
 
+  const expenses = totals.filter(t => t.type === "expense")
   return {
-    expense: totals.find((t) => t.type === "expense")?._sum.amount || 0,
+    expense: expenses.map(entry => entry._sum.amount).reduce((sum, amount) => (sum || 0) + (amount || 0), 0),
     income: totals.find((t) => t.type === "income")?._sum.amount || 0,
-    debt: totals.find((t) => t.type === "expense" && t.isPaidOff == false)?._sum.amount || 0,
+    debt: expenses.find((t) => t.type === "expense" && t.isPaidOff == false)?._sum.amount || 0,
   };
 }
