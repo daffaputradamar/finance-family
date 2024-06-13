@@ -23,25 +23,6 @@ function TransactionsPage() {
     }, [setDateRange]
   )
 
-  const periodsQuery = useQuery({
-    queryKey: ["periods"],
-    queryFn: () =>
-      fetch(`/api/periods`).then((res) => res.json()),
-  });
-
-  useEffect(() => {
-    if(periodsQuery.isSuccess) {
-      let data: Period = periodsQuery.data?.find((x: Period) => x.isDefault)
-      
-      if(data) {
-        setDateRange({
-          from: data.start,
-          to: data.end
-        })
-      }
-    }
-  }, [periodsQuery.isSuccess])
-
   return (
     <>
       <div className="border-b bg-card">
@@ -50,7 +31,7 @@ function TransactionsPage() {
             <p className="text-3xl font-bold">Transactions history</p>
           </div>
           <div className="flex items-center gap-3">
-            <PeriodPicker isLoading={periodsQuery.isLoading} onChange={handlePeriodChange} periods={periodsQuery.data} />
+            <PeriodPicker onChange={handlePeriodChange} />
             {/* <DateRangePicker
               initialDateFrom={dateRange.from}
               initialDateTo={dateRange.to}

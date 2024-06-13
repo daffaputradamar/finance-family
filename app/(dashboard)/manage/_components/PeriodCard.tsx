@@ -1,4 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PeriodPicker from "../../_components/PeriodPicker";
 import { useCallback } from "react";
 import CreateCategoryDialog from "../../_components/CreateCategoryDialog";
@@ -7,48 +9,68 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { PlusSquare } from "lucide-react";
 import SkeletonWrapper from "@/components/SkeletonWrapper";
+import { SetDefaultPeriod } from "../_actions/setDefaultPeriod";
+import { toast } from "sonner";
+import { Period } from "@prisma/client";
 
 interface Props {
 }
-  
-  export function PeriodCard({ }: Props) {
 
-    // const handlePeriodChange = useCallback(
-    //     (period: Period) => {
-    //       setDateRange({from: period.start, to: period.end})
-    //     }, [setDateRange]
-    //   )
-    
-      const periodsQuery = useQuery({
-        queryKey: ["periods"],
-        queryFn: () =>
-          fetch(`/api/periods`).then((res) => res.json()),
+export function PeriodCard({ }: Props) {
+  const queryClient = useQueryClient();
+
+  const updateDefaultPeriod = useMutation({
+    mutationFn: SetDefaultPeriod,
+    onSuccess: async () => {
+      toast.success("Default Period Successfully Updated", {
+        id: "updateDefaultPeriod",
       });
 
-    return (
-      <SkeletonWrapper isLoading={periodsQuery.isLoading}>
-        <Card>
+      await queryClient.invalidateQueries({
+        queryKey: ["periods"],
+      });
+    },
+    onError: () => {
+      toast.error("Something went wrong", {
+        id: "updateDefaultPeriod",
+      });
+    },
+  });
+
+  const handlePeriodChange = (period: Period, isNeedUpdate: boolean = false) => {
+    if(!isNeedUpdate) return
+
+    toast.loading("Updating default period...", {
+      id: "updateDefaultPeriod",
+    });
+
+    updateDefaultPeriod.mutate(period.id);
+  }
+
+  return (
+    // <SkeletonWrapper isLoading={queryClient}>
+      <Card>
         <CardHeader className="flex">
           <CardTitle>
             <div className="flex justify-between items-center">
               Period
-              <CreatePeriodDialog successCallback={() => {}} trigger={
+              <CreatePeriodDialog successCallback={() => { }} trigger={
                 <Button className="gap-2 text-sm">
                   <PlusSquare className="h-4 w-4" />
                   Create Period
                 </Button>
-              }/>
+              } />
             </div>
           </CardTitle>
           <CardDescription>
             Set your default period filter
           </CardDescription>
-          
+
         </CardHeader>
         <CardContent>
-          <PeriodPicker isLoading={periodsQuery.isLoading} periods={periodsQuery.data}  onChange={() => {}} align="start" />
+          <PeriodPicker onChange={handlePeriodChange} align="start" />
         </CardContent>
       </Card>
-      </SkeletonWrapper>
-    )
-  }
+    // </SkeletonWrapper>
+  )
+}

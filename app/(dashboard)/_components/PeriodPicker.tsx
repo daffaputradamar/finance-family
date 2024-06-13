@@ -36,35 +36,35 @@ const formatDate = (date: Date, format: Intl.DateTimeFormatOptions = {
   };
 
 interface Props {
-  periods: Period[];
-  isLoading: boolean;
-  onChange: (period: Period) => void;
+  onChange: (period: Period, isNeedUpdate?: boolean) => void;
   align?:  "end" | "center" | "start" | undefined
 }
 
-function PeriodPicker({ onChange, periods, isLoading, align = "end" }: Props) {
+function PeriodPicker({ onChange, align = "end" }: Props) {
+  
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState((periods ?? []).find(x => x.isDefault));
+  const [value, setValue] = React.useState<Period | null>(null);
+  const [periods, setPeriods] = useState([])
+
+  const periodsQuery = useQuery({
+    queryKey: ["periods"],
+    queryFn: () =>
+      fetch(`/api/periods`).then((res) => res.json()),
+  });
 
   useEffect(() => {
-    if (!value) return;
-    // when the value changes, call onChange callback
-    onChange(value);
-  }, [onChange, value]);
-
-  useEffect(() => {
-    setValue((periods ?? []).find(x => x.isDefault))
-  }, [periods])
-//   const successCallback = useCallback(
-//     (period: Period) => {
-//       setValue(period.id);
-//       setOpen((prev) => !prev);
-//     },
-//     [setValue, setOpen]
-//   );
+    if (periodsQuery.isSuccess) {
+      const data: Period | undefined = periodsQuery.data?.find((x: Period) => x.isDefault);
+      setPeriods(periodsQuery.data);
+      if (data) {
+        setValue(data);
+        onChange(data);
+      }
+    }
+  }, [periodsQuery.isSuccess, periodsQuery.data, onChange]);
 
   return (
-    <SkeletonWrapper isLoading={isLoading}>
+    <SkeletonWrapper isLoading={periodsQuery.isLoading}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -102,6 +102,7 @@ function PeriodPicker({ onChange, periods, isLoading, align = "end" }: Props) {
                       key={period.id}
                       onSelect={() => {
                         setValue(period);
+                        onChange(period, true)
                         setOpen((prev) => !prev);
                       }}
                     >

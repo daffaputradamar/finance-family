@@ -10,12 +10,11 @@ import { differenceInDays, startOfMonth } from "date-fns";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import PeriodPicker from "./PeriodPicker";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import SkeletonWrapper from "@/components/SkeletonWrapper";
 
 
 function Overview({ userSettings }: { userSettings: UserSetting }) {
-  const queryClient = useQueryClient();
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: startOfMonth(new Date()),
     to: new Date(),
@@ -27,30 +26,12 @@ function Overview({ userSettings }: { userSettings: UserSetting }) {
     }, [setDateRange]
   )
 
-  const periodsQuery = useQuery({
-    queryKey: ["periods"],
-    queryFn: () =>
-      fetch(`/api/periods`).then((res) => res.json()),
-  });
-
-  useEffect(() => {
-    if(periodsQuery.isSuccess) {
-      let data: Period = periodsQuery.data?.find((x: Period) => x.isDefault)
-      if(data) {
-        setDateRange({
-          from: data.start,
-          to: data.end
-        })
-      }
-    }
-  }, [periodsQuery.isSuccess])
-
   return (
     <>
       <div className="container flex flex-wrap items-end justify-between gap-2 py-6">
         <h2 className="text-3xl font-bold">Overview</h2>
         <div className="flex items-center gap-3">
-          {<PeriodPicker isLoading={periodsQuery.isLoading} onChange={handlePeriodChange} periods={periodsQuery.data} />}
+          <PeriodPicker onChange={handlePeriodChange} />
           
           {/* <DateRangePicker
             initialDateFrom={dateRange.from}
