@@ -1,5 +1,6 @@
 "use server";
 
+import { DateToUTCDate } from "@/lib/helpers";
 import prisma from "@/lib/prisma";
 import {
     CreatePeriodSchema,
@@ -27,12 +28,14 @@ export async function CreatePeriod(form: CreatePeriodSchemaType) {
     
 
     const { name, start, end, isDefault } = parsedBody.data;
+    let _end = DateToUTCDate(end);
+    _end.setUTCHours(23, 59, 59, 999);
     return await prisma.period.create({
         data: {
             userId: user.id,
             name,
-            start,
-            end,
+            start: DateToUTCDate(start),
+            end: _end,
             isDefault: (!periodExists && !isDefault) ? true : isDefault,
         },
     });
