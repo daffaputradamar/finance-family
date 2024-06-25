@@ -32,7 +32,7 @@ import { Button } from "@/components/ui/button";
 import { DataTableViewOptions } from "@/components/datatable/ColumnToggle";
 
 import { download, generateCsv, mkConfig } from "export-to-csv";
-import { DownloadIcon, MoreHorizontal, TrashIcon } from "lucide-react";
+import { BanknoteIcon, DownloadIcon, MoreHorizontal, TrashIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +45,7 @@ import DeleteTransactionDialog from "@/app/(dashboard)/transactions/_components/
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { UpdatePaidOffTransaction } from "../_actions/updatePaidOffTransaction";
+import PaidAllDebtDialog from "./PaidAllDebtDialog";
 
 interface Props {
   from: Date;
@@ -64,6 +65,7 @@ const csvConfig = mkConfig({
 function TransactionTable({ from, to }: Props) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [isDialogUpdatePaidOffOpen, setIsDialogUpdatePaidOffOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -182,12 +184,12 @@ function TransactionTable({ from, to }: Props) {
               toast.loading("Updating transaction...", {
                 id: "updatePaidOff",
               });
-  
+
               updatePaidOff.mutate(row.original.id);
             }}
           />
         </div>
-        
+
       ),
     },
     {
@@ -266,6 +268,21 @@ function TransactionTable({ from, to }: Props) {
           >
             <DownloadIcon className="mr-2 h-4 w-4" />
             Export CSV
+          </Button>
+          <Button
+            variant={"outline"}
+            size={"sm"}
+            className="ml-auto h-8 lg:flex"
+            onClick={() => {
+              setIsDialogUpdatePaidOffOpen(true);
+            }}
+          >
+            <BanknoteIcon className="mr-2 h-4 w-4" />
+            Paid all Debt
+            <PaidAllDebtDialog
+              open={isDialogUpdatePaidOffOpen}
+              setOpen={() => setIsDialogUpdatePaidOffOpen(false)}
+            />
           </Button>
           <DataTableViewOptions table={table} />
         </div>
