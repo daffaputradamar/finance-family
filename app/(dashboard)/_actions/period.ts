@@ -30,11 +30,13 @@ export async function CreatePeriod(form: CreatePeriodSchemaType) {
     const { name, start, end, isDefault } = parsedBody.data;
     let _end = DateToUTCDate(end);
     _end.setUTCHours(23, 59, 59, 999);
+    let _start = DateToUTCDate(start);
+    _start.setUTCHours(0, 0, 0, 0);
     return await prisma.period.create({
         data: {
             userId: user.id,
             name,
-            start: DateToUTCDate(start),
+            start: _start,
             end: _end,
             isDefault: (!periodExists && !isDefault) ? true : isDefault,
         },
