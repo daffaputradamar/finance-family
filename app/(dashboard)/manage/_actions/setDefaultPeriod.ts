@@ -1,8 +1,10 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import db from "@/src/db";
+import { periods } from "@/src/db/schema";
 import { currentUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
+import { eq, and } from "drizzle-orm";
 
 export async function SetDefaultPeriod(id: string) {
   const user = await currentUser();
@@ -10,37 +12,24 @@ export async function SetDefaultPeriod(id: string) {
     redirect("/sign-in");
   }
 
-  const period = await prisma.period.findUnique({
-    where: {
-      userId: user.id,
-      id,
-    },
-  });
+  // Find the period
+  const [period] = await db
+    .select()
+    .from(periods)
+    .where(and(eq(periods.userId, user.id), eq(periods.id, id)));
 
   if (!period) {
     throw new Error("bad request");
   }
 
-  await prisma.$transaction([
-    // Delete transaction from db
-    prisma.period.updateMany({
-        where: {
-          userId: user.id,
-        },
-        data: {
-          isDefault: false
-        }
-    }),
-      
-    prisma.period.update({
-      where: {
-        id,
-        userId: user.id,
-      },
-      data: {
-        isDefault: true
-      }
-    }),
-    
-  ]);
+  await db
+    .update(periods)
+    .set({ isDefault: false })
+    .where(eq(periods.userId, user.id));
+  
+  // Set the selected period to isDefault = true
+  await db
+    .update(periods)
+    .set({ isDefault: true })
+    .where(and(eq(periods.id, id), eq(periods.userId, user.id)));
 }

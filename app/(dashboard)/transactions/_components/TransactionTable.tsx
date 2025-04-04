@@ -46,6 +46,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { UpdatePaidOffTransaction } from "../_actions/updatePaidOffTransaction";
 import PaidAllDebtDialog from "./PaidAllDebtDialog";
+import { PencilIcon } from "lucide-react";
+import UpdateTransactionDialog from "./UpdateTransactionDialog";
 
 interface Props {
   from: Date;
@@ -365,6 +367,7 @@ export default TransactionTable;
 
 function RowActions({ transaction }: { transaction: TransactionHistoryRow }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
 
   return (
     <>
@@ -373,9 +376,14 @@ function RowActions({ transaction }: { transaction: TransactionHistoryRow }) {
         setOpen={setShowDeleteDialog}
         transactionId={transaction.id}
       />
+      <UpdateTransactionDialog 
+        open={showUpdateDialog}
+        setOpen={setShowUpdateDialog}
+        transaction={transaction}
+      />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant={"ghost"} className="h-8 w-8 p-0 ">
+          <Button variant={"ghost"} className="h-8 w-8 p-0">
             <span className="sr-only">Open menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
@@ -385,9 +393,14 @@ function RowActions({ transaction }: { transaction: TransactionHistoryRow }) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="flex items-center gap-2"
-            onSelect={() => {
-              setShowDeleteDialog((prev) => !prev);
-            }}
+            onSelect={() => setShowUpdateDialog(true)}
+          >
+            <PencilIcon className="h-4 w-4 text-muted-foreground" />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="flex items-center gap-2"
+            onSelect={() => setShowDeleteDialog(true)}
           >
             <TrashIcon className="h-4 w-4 text-muted-foreground" />
             Delete

@@ -1,7 +1,9 @@
-import prisma from "@/lib/prisma";
+import db from "@/src/db";
+import { categories } from "@/src/db/schema";
 import { currentUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { and, eq, asc } from "drizzle-orm";
 
 export async function GET(request: Request) {
   const user = await currentUser();
@@ -22,15 +24,16 @@ export async function GET(request: Request) {
   }
 
   const type = queryParams.data;
-  const categories = await prisma.category.findMany({
-    where: {
-      userId: user.id,
-      ...(type && { type }), // include type in the filters if it's defined
-    },
-    orderBy: {
-      name: "asc",
-    },
-  });
+  const whereConditions = [eq(categories.userId, user.id)];
+  if (type) {
+    whereConditions.push(eq(categories.type, type));
+  }
 
-  return Response.json(categories);
+  const categoriesList = await db
+    .select()
+    .from(categories)
+    .where(and(...whereConditions))
+    .orderBy(asc(categories.name));
+
+  return Response.json(categoriesList);
 }
