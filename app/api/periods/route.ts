@@ -1,7 +1,8 @@
-import prisma from "@/lib/prisma";
+import db from "@/src/db";
+import { periods } from "@/src/db/schema";
 import { currentUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
-import { z } from "zod";
+import { eq, desc } from "drizzle-orm";
 
 export async function GET(request: Request) {
   const user = await currentUser();
@@ -9,15 +10,12 @@ export async function GET(request: Request) {
     redirect("/sign-in");
   }
 
-  const periods = await prisma.period.findMany({
-    where: {
-      userId: user.id
-    },
-    orderBy: {
-      createdAt: "desc"
-    }
-  })
+  const periodsList = await db
+    .select()
+    .from(periods)
+    .where(eq(periods.userId, user.id))
+    .orderBy(desc(periods.createdAt));
 
-  return Response.json(periods);
+  return Response.json(periodsList);
 }
 

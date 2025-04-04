@@ -1,10 +1,11 @@
-import prisma from "@/lib/prisma";
+import db from "@/src/db";
+import { transactions } from "@/src/db/schema";
 import { Period, Timeframe } from "@/lib/types";
 import { currentUser } from "@clerk/nextjs";
-import { error } from "console";
 import { getDaysInMonth } from "date-fns";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { eq, sql, asc, and } from "drizzle-orm";
 
 const getHistoryDataSchema = z.object({
   timeframe: z.enum(["month", "year"]),
@@ -69,88 +70,57 @@ type HistoryData = {
 };
 
 async function getYearHistoryData(userId: string, year: number) {
-  const result = await prisma.yearHistory.groupBy({
-    by: ["month"],
-    where: {
-      userId,
-      year,
-    },
-    _sum: {
-      expense: true,
-      income: true,
-    },
-    orderBy: [
-      {
-        month: "asc",
-      },
-    ],
-  });
-
-  if (!result || result.length === 0) return [];
+  const result = await db
+    .select({
+      month: sql<number>`date_part('month', ${transactions.date}) - 1`.as('month'),
+      expense: sql<number>`sum(CASE WHEN type = 'expense' THEN amount ELSE 0 END)`.as('expense'),
+      income: sql<number>`sum(CASE WHEN type = 'income' THEN amount ELSE 0 END)`.as('income'),
+    })
+    .from(transactions)
+    .where(and(
+      eq(transactions.userId, userId),
+      sql`date_part('year', ${transactions.date}) = ${year}`
+    ))
+    .groupBy(sql`date_part('month', ${transactions.date})`)
+    .orderBy(sql`date_part('month', ${transactions.date})`);
 
   const history: HistoryData[] = [];
-
   for (let i = 0; i < 12; i++) {
-    let expense = 0;
-    let income = 0;
-
     const month = result.find((row) => row.month === i);
-    if (month) {
-      expense = month._sum.expense || 0;
-      income = month._sum.income || 0;
-    }
-
     history.push({
       year,
       month: i,
-      expense,
-      income,
+      expense: month?.expense || 0,
+      income: month?.income || 0,
     });
   }
 
   return history;
 }
 
-async function getMonthHistoryData(
-  userId: string,
-  year: number,
-  month: number
-) {
-  const result = await prisma.monthHistory.groupBy({
-    by: ["day"],
-    where: {
-      userId,
-      year,
-      month,
-    },
-    _sum: {
-      expense: true,
-      income: true,
-    },
-    orderBy: [
-      {
-        day: "asc",
-      },
-    ],
-  });
-
-  if (!result || result.length === 0) return [];
+async function getMonthHistoryData(userId: string, year: number, month: number) {
+  const result = await db
+    .select({
+      day: sql<number>`date_part('day', ${transactions.date})`.as('day'),
+      expense: sql<number>`sum(CASE WHEN type = 'expense' THEN amount ELSE 0 END)`.as('expense'),
+      income: sql<number>`sum(CASE WHEN type = 'income' THEN amount ELSE 0 END)`.as('income'),
+    })
+    .from(transactions)
+    .where(and(
+      eq(transactions.userId, userId),
+      sql`date_part('year', ${transactions.date}) = ${year}`,
+      sql`date_part('month', ${transactions.date}) - 1 = ${month}`
+    ))
+    .groupBy(sql`date_part('day', ${transactions.date})`)
+    .orderBy(sql`date_part('day', ${transactions.date})`);
 
   const history: HistoryData[] = [];
   const daysInMonth = getDaysInMonth(new Date(year, month));
   for (let i = 1; i <= daysInMonth; i++) {
-    let expense = 0;
-    let income = 0;
-
     const day = result.find((row) => row.day === i);
-    if (day) {
-      expense = day._sum.expense || 0;
-      income = day._sum.income || 0;
-    }
-
     history.push({
-      expense,
-      income,
+      expense: day?.expense || 0,
+      income: day?.income || 0,
       year,
       month,
       day: i,

@@ -1,8 +1,9 @@
-import prisma from "@/lib/prisma";
+import db from "@/src/db";
+import { transactions } from "@/src/db/schema";
 import { OverviewQuerySchema } from "@/schema/overview";
 import { currentUser } from "@clerk/nextjs";
-import { Return } from "@prisma/client/runtime/library";
 import { redirect } from "next/navigation";
+import { and, eq, gte, lte, sql, desc } from "drizzle-orm";
 
 export async function GET(request: Request) {
   const user = await currentUser();
@@ -32,24 +33,23 @@ export type GetCategoriesStatsResponseType = Awaited<
 >;
 
 async function getCategoriesStats(userId: string, from: Date, to: Date) {
-  const stats = await prisma.transaction.groupBy({
-    by: ["type", "category", "categoryIcon"],
-    where: {
-      userId,
-      date: {
-        gte: from,
-        lte: to,
-      },
-    },
-    _sum: {
-      amount: true,
-    },
-    orderBy: {
+  const stats = await db
+    .select({
+      type: transactions.type,
+      category: transactions.category,
+      categoryIcon: transactions.categoryIcon,
       _sum: {
-        amount: "desc",
-      },
-    },
-  });
+        amount: sql<number>`sum(${transactions.amount})`.as('amount')
+      }
+    })
+    .from(transactions)
+    .where(and(
+      eq(transactions.userId, userId),
+      gte(transactions.date, from),
+      lte(transactions.date, to)
+    ))
+    .groupBy(transactions.type, transactions.category, transactions.categoryIcon)
+    .orderBy(desc(sql`sum(${transactions.amount})`));
 
   return stats;
 }

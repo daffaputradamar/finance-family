@@ -35,6 +35,9 @@ function PaidAllDebtDialog({ open, setOpen }: Props) {
       await queryClient.invalidateQueries({
         queryKey: ["transactions"],
       });
+      await queryClient.invalidateQueries({
+        queryKey: ["overview", "stats"],
+      });
 
       setOpen(false);
     },
