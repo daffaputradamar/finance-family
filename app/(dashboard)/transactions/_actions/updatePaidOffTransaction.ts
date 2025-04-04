@@ -1,8 +1,10 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import db from "@/src/db";
+import { transactions } from "@/src/db/schema";
 import { currentUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
+import { and, eq } from "drizzle-orm";
 
 export async function UpdatePaidOffTransaction(id: string) {
   const user = await currentUser();
@@ -10,28 +12,20 @@ export async function UpdatePaidOffTransaction(id: string) {
     redirect("/sign-in");
   }
 
-  const transaction = await prisma.transaction.findUnique({
-    where: {
-      userId: user.id,
-      id,
-    },
-  });
+  const [transaction] = await db
+    .select()
+    .from(transactions)
+    .where(and(eq(transactions.userId, user.id), eq(transactions.id, id)));
 
   if (!transaction) {
     throw new Error("bad request");
   }
 
-  await prisma.$transaction([
-    // Delete transaction from db
-    prisma.transaction.update({
-      where: {
-        id,
-        userId: user.id,
-      },
-      data: {
-        isPaidOff: !transaction.isPaidOff
-      }
-    }),
-    
-  ]);
+  await db
+    .update(transactions)
+    .set({ isPaidOff: !transaction.isPaidOff })
+    .where(and(
+      eq(transactions.id, id),
+      eq(transactions.userId, user.id)
+    ));
 }

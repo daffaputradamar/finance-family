@@ -2,9 +2,11 @@ import CreateTransactionDialog from "@/app/(dashboard)/_components/CreateTransac
 import History from "@/app/(dashboard)/_components/History";
 import Overview from "@/app/(dashboard)/_components/Overview";
 import { Button } from "@/components/ui/button";
-import prisma from "@/lib/prisma";
+import db from "@/src/db";
+import { userSettings } from "@/src/db/schema";
 import { currentUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
 import React from "react";
 
 async function page() {
@@ -13,13 +15,12 @@ async function page() {
     redirect("/sign-in");
   }
 
-  const userSettings = await prisma.userSetting.findUnique({
-    where: {
-      userId: user.id,
-    },
-  });
+  const [userSetting] = await db
+    .select()
+    .from(userSettings)
+    .where(eq(userSettings.userId, user.id));
 
-  if (!userSettings) {
+  if (!userSetting) {
     redirect("/wizard");
   }
 
@@ -56,8 +57,8 @@ async function page() {
           </div>
         </div>
       </div>
-      <Overview userSettings={userSettings} />
-      <History userSettings={userSettings} />
+      <Overview userSettings={userSetting} />
+      <History userSettings={userSetting} />
     </div>
   );
 }

@@ -1,12 +1,14 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import db from "@/src/db";
+import { categories, transactions } from "@/src/db/schema";
 import {
   CreateTransactionSchema,
   CreateTransactionSchemaType,
 } from "@/schema/transaction";
 import { currentUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
+import { and, eq, sql } from "drizzle-orm";
 
 export async function CreateTransaction(form: CreateTransactionSchemaType) {
   const parsedBody = CreateTransactionSchema.safeParse(form);
@@ -20,88 +22,32 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
   }
 
   const { amount, category, date, description, type, isPaidOff } = parsedBody.data;
-  console.log("body", parsedBody);
   
-  const categoryRow = await prisma.category.findFirst({
-    where: {
-      userId: user.id,
-      name: category,
-    },
-  });
+  const [categoryRow] = await db
+    .select()
+    .from(categories)
+    .where(and(
+      eq(categories.userId, user.id),
+      eq(categories.name, category)
+    ))
+    .limit(1);
 
   if (!categoryRow) {
     throw new Error("category not found");
   }
 
-  // NOTE: don't make confusion between $transaction ( prisma ) and prisma.transaction (table)
-
-  await prisma.$transaction([
-    // Create user transaction
-    prisma.transaction.create({
-      data: {
-        userId: user.id,
-        amount,
-        date,
-        description: description || "",
-        type,
-        category: categoryRow.name,
-        categoryIcon: categoryRow.icon,
-        isPaidOff: isPaidOff
-      },
-    }),
-
-    // Update month aggregate table
-    prisma.monthHistory.upsert({
-      where: {
-        day_month_year_userId: {
-          userId: user.id,
-          day: date.getUTCDate(),
-          month: date.getUTCMonth(),
-          year: date.getUTCFullYear(),
-        },
-      },
-      create: {
-        userId: user.id,
-        day: date.getUTCDate(),
-        month: date.getUTCMonth(),
-        year: date.getUTCFullYear(),
-        expense: type === "expense" ? amount : 0,
-        income: type === "income" ? amount : 0,
-      },
-      update: {
-        expense: {
-          increment: type === "expense" ? amount : 0,
-        },
-        income: {
-          increment: type === "income" ? amount : 0,
-        },
-      },
-    }),
-
-    // Update year aggreate
-    prisma.yearHistory.upsert({
-      where: {
-        month_year_userId: {
-          userId: user.id,
-          month: date.getUTCMonth(),
-          year: date.getUTCFullYear(),
-        },
-      },
-      create: {
-        userId: user.id,
-        month: date.getUTCMonth(),
-        year: date.getUTCFullYear(),
-        expense: type === "expense" ? amount : 0,
-        income: type === "income" ? amount : 0,
-      },
-      update: {
-        expense: {
-          increment: type === "expense" ? amount : 0,
-        },
-        income: {
-          increment: type === "income" ? amount : 0,
-        },
-      },
-    }),
-  ]);
+  // Create user transaction
+  await db
+    .insert(transactions)
+    .values({
+      id: crypto.randomUUID(),
+      userId: user.id,
+      amount,
+      date,
+      description: description || "",
+      type,
+      category: categoryRow.name,
+      categoryIcon: categoryRow.icon,
+      isPaidOff
+    });
 }

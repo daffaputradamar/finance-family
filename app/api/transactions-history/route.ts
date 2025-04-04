@@ -1,8 +1,10 @@
 import { GetFormatterForCurrency } from "@/lib/helpers";
-import prisma from "@/lib/prisma";
+import db from "@/src/db";
+import { transactions, userSettings } from "@/src/db/schema";
 import { OverviewQuerySchema } from "@/schema/overview";
 import { currentUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
+import { and, eq, gte, lte, desc } from "drizzle-orm";
 
 export async function GET(request: Request) {
   const user = await currentUser();
@@ -39,31 +41,28 @@ export type GetTransactionHistoryResponseType = Awaited<
 >;
 
 async function getTransactionsHistory(userId: string, from: Date, to: Date) {
-  const userSettings = await prisma.userSetting.findUnique({
-    where: {
-      userId,
-    },
-  });
-  if (!userSettings) {
+  const [userSetting] = await db
+    .select()
+    .from(userSettings)
+    .where(eq(userSettings.userId, userId));
+
+  if (!userSetting) {
     throw new Error("user settings not found");
   }
 
-  const formatter = GetFormatterForCurrency(userSettings.currency);
+  const formatter = GetFormatterForCurrency(userSetting.currency);
 
-  const transactions = await prisma.transaction.findMany({
-    where: {
-      userId,
-      date: {
-        gte: from,
-        lte: to,
-      },
-    },
-    orderBy: {
-      date: "desc",
-    },
-  });
+  const transactionsList = await db
+    .select()
+    .from(transactions)
+    .where(and(
+      eq(transactions.userId, userId),
+      gte(transactions.date, from),
+      lte(transactions.date, to)
+    ))
+    .orderBy(desc(transactions.date), desc(transactions.createdAt));
 
-  return transactions.map((transaction) => ({
+  return transactionsList.map((transaction) => ({
     ...transaction,
     // lets format the amount with the user currency
     formattedAmount: formatter.format(transaction.amount),

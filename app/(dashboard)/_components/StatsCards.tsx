@@ -7,8 +7,10 @@ import { DateToUTCDate, GetFormatterForCurrency } from "@/lib/helpers";
 import { UserSetting } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingDown, TrendingUp, Wallet, HandCoins } from "lucide-react";
-import React, { ReactNode, useCallback, useMemo } from "react";
+import React, { ReactNode, useCallback, useMemo, useState } from "react";
 import CountUp from "react-countup";
+import { Button } from "@/components/ui/button";
+import PaidAllDebtDialog from "@/app/(dashboard)/transactions/_components/PaidAllDebtDialog";
 
 interface Props {
   from: Date;
@@ -17,6 +19,8 @@ interface Props {
 }
 
 function StatsCards({ from, to, userSettings }: Props) {
+  // Add this state
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const statsQuery = useQuery<GetBalanceStatsResponseType>({
     queryKey: ["overview", "stats", from, to],
     queryFn: () => {
@@ -37,7 +41,7 @@ function StatsCards({ from, to, userSettings }: Props) {
   const balance = income - expense;
 
   return (
-    <div className="relative flex w-full flex-wrap gap-2 md:flex-nowrap">
+    <div className="relative grid w-full gap-2 grid-cols-2 md:grid-cols-4">
       <SkeletonWrapper isLoading={statsQuery.isFetching}>
         <StatCard
           formatter={formatter}
@@ -79,6 +83,20 @@ function StatsCards({ from, to, userSettings }: Props) {
           icon={
             <HandCoins className="h-12 w-12 items-center rounded-lg p-2 text-amber-500 bg-violet-400/10" />
           }
+          action={
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              Paid All
+            </Button>
+          }
+        />
+        <PaidAllDebtDialog
+          open={isDialogOpen}
+          setOpen={setIsDialogOpen}
         />
       </SkeletonWrapper>
     </div>
@@ -87,16 +105,19 @@ function StatsCards({ from, to, userSettings }: Props) {
 
 export default StatsCards;
 
+// Modify StatCard to accept action prop
 function StatCard({
   formatter,
   value,
   title,
   icon,
+  action,
 }: {
   formatter: Intl.NumberFormat;
   icon: ReactNode;
   title: String;
   value: number;
+  action?: ReactNode;
 }) {
   const formatFn = useCallback(
     (value: number) => {
@@ -109,7 +130,10 @@ function StatCard({
     <Card className="flex h-24 w-full items-center gap-2 p-4">
       {icon}
       <div className="flex flex-col items-start gap-0">
-        <p className="text-muted-foreground">{title}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-muted-foreground">{title}</p>
+          {action}
+        </div>
         <CountUp
           preserveValue
           redraw={false}

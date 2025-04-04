@@ -1,6 +1,8 @@
-import prisma from "@/lib/prisma";
+import db from "@/src/db";
+import { transactions } from "@/src/db/schema";
 import { currentUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
+import { eq, asc, sql } from "drizzle-orm";
 
 export async function GET(request: Request) {
   const user = await currentUser();
@@ -17,24 +19,17 @@ export type GetHistoryPeriodsResponseType = Awaited<
 >;
 
 async function getHistoryPeriods(userId: string) {
-  const result = await prisma.monthHistory.findMany({
-    where: {
-      userId,
-    },
-    select: {
-      year: true,
-    },
-    distinct: ["year"],
-    orderBy: [
-      {
-        year: "asc",
-      },
-    ],
-  });
+  const result = await db
+    .select({
+      year: sql<number>`date_part('year', ${transactions.date})`.as('year')
+    })
+    .from(transactions)
+    .where(eq(transactions.userId, userId))
+    .groupBy(sql`date_part('year', ${transactions.date})`)
+    .orderBy(asc(sql`date_part('year', ${transactions.date})`));
 
   const years = result.map((el) => el.year);
   if (years.length === 0) {
-    // Return the current year
     return [new Date().getFullYear()];
   }
 
